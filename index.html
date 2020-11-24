@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>CopyKat Game</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="js/pixi.min.js"></script>
+	<script>
+		let app;
+		let round = 1;
+		let pink, yellow, green, blue, text, attempt, counter = 0, wins = 0, score;
+		let list = [];
+		let currLevel = 1;
+		let generatedAnswer = [];
+		let generatedSequence = [];
+		let userInput = [];
+
+		const style = new PIXI.TextStyle({
+			fontFamily: 'Arial',
+			fontSize: 25,
+			fontStyle: 'italic',
+			fontWeight: 'bold',
+			fill: ['#ffffff', '#00ff99'], // gradient
+			stroke: '#4a1850',
+			strokeThickness: 5,
+			dropShadow: true,
+			dropShadowColor: '#000000',
+			dropShadowBlur: 4,
+			dropShadowAngle: Math.PI / 6,
+			dropShadowDistance: 6,
+			wordWrap: true,
+			wordWrapWidth: 440,
+			lineJoin: 'round'
+		});
+
+
+
+		let start;
+		const Rect_W = 200, Rect_H = 200;
+		window.onload = function () {
+			app = new PIXI.Application(
+				{
+					width: 600,
+					height: 600,
+					backgroundColor: 0x6865C6
+				}
+			);
+			document.body.appendChild(app.view);
+
+			pink = setSprite("img/pink.jpg", 200, 250);
+			yellow = setSprite("img/yellow.jpg", 400, 250);
+			green = setSprite("img/green.jpg", 200, 450);
+			blue = setSprite("img/blue.jpg", 400, 450);
+
+			app.stage.addChild(pink);
+			app.stage.addChild(yellow);
+			app.stage.addChild(green);
+			app.stage.addChild(blue);
+
+			list.push(pink);
+			list.push(yellow);
+			list.push(green);
+			list.push(blue);
+
+			const title = new PIXI.Text('CopyKat Game', style);
+			title.x = 200;
+			title.y = 20;
+			app.stage.addChild(title);
+
+
+			text = new PIXI.Text("Remember", style);
+			text.x = 30;
+			text.y = 70;
+			app.stage.addChild(text);
+
+			attempt = new PIXI.Text("Round: " + (round) + "/3", style);
+			attempt.x = 230;
+			attempt.y = 70;
+			app.stage.addChild(attempt);
+
+			score = new PIXI.Text("Score: " + wins, style);
+			score.x = 450;
+			score.y = 70;
+			app.stage.addChild(score);
+
+			app.ticker.add(gameLoop);
+
+			generateSeq();
+			animate();
+
+
+		}
+		async function gameLoop() {
+
+			if (userInput.length == currLevel) {
+				console.log("inside GameLoop");
+				currLevel++;
+				counter = 0;
+				wins++;
+				score.text = "Scorce: " + wins;
+
+				await timer(500);
+				text.text = "You Win";
+				await timer(1000);
+
+				userInput = [];
+				generatedSequence = [];
+				generatedAnswer = [];
+				generateSeq();
+				animate();
+
+			}
+
+		}
+		const timer = ms => new Promise(res => setTimeout(res, ms))
+
+		function setSprite(path, x, y) {
+			sprite = new PIXI.Sprite.from(path);
+			sprite.anchor.set(0.5);
+			sprite.x = x;
+			sprite.y = y;
+			sprite.height = 150;
+			sprite.width = 150;
+			return sprite;
+		}
+
+		async function onClick() {
+			if (generatedSequence[counter] == this) {
+				counter++;
+				userInput.push(this);
+			}
+			else {
+				round++;
+				text.text = "You Lose";
+				await timer(2000);
+				attempt.text = "Round: " + (round) + "/3";
+				// animate();
+				userInput = []
+				generatedSequence = []
+				generatedAnswer = []
+
+				generateSeq();
+				animate();
+
+				// alert("Try Again");
+			}
+
+			if (round > 3) {
+				alert("Final Score is " + wins + " Game Over");
+				location.reload();
+			}
+
+		}
+		function onDown() {
+			// this.alpha = 0.5
+		}
+		function onUp() {
+			// this.alpha = 0.3
+		}
+
+		function generateSeq() {
+			for (i = 0; i < currLevel; i++) {
+				x = Math.floor((Math.random() * 4));
+				generatedAnswer.push(x);
+				generatedSequence.push(list[x]);
+			}
+			console.log(generatedSequence.length + " is the len");
+		}
+		async function animate() {
+			await timer(500);
+			text.text = "Remember";
+			for (i = 0; i < 4; i++) {
+				list[i].off("pointerdown", onClick);
+				list[i].off("mousedown", onDown);
+				list[i].off("mouseup", onUp);
+				list[i].interactive = false;
+			}
+			for (i = 0; i < currLevel; i++) {
+				console.log(i + " " + generatedAnswer[i]);
+				list[generatedAnswer[i]].alpha = 0.2;
+				await timer(500);
+				list[generatedAnswer[i]].alpha = 1;
+				start = start + 500;
+				await timer(500);
+				start = start + 500;
+			}
+			for (i = 0; i < 4; i++) {
+				list[i].on("pointerdown", onClick);
+				list[i].on("mousedown", onDown);
+				list[i].on("mouseup", onUp);
+				list[i].interactive = true;
+				list[i].buttonMode = true;
+			}
+			await timer(500);
+			text.text = "Your Turn";
+			canClick = true;
+		}
+	</script>
+</head>
+
+<body>
+
+</body>
+
+</html>
